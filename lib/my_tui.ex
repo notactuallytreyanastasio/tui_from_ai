@@ -1,59 +1,39 @@
 defmodule MyTui do
-  use Ratatouille.App
+  @moduledoc """
+  Simple demonstration of using ExNcurses to display bold text.
+  """
 
-  alias Ratatouille.View
-  alias MarkdownTui
+  # We’ll just expose a `start/0` function
+  def start do
+    # Initialize curses
+    :ok = ExNcurses.initscr()
+    # Turn off line buffering, etc. if you like:
+    ExNcurses.cbreak()
+    ExNcurses.noecho()
 
-  def init(_context) do
-    %{
-      posts: [
-        %{
-          title: "An awesome TUI in Elixir",
-          body: """
-          # Welcome to MyTui
+    # We can also start color if we want
+    ExNcurses.start_color()
+    # Let's define a color pair (text color, background color).
+    # This is optional if you just want white-on-black defaults.
+    ExNcurses.init_pair(1, :white, :black)
 
-          This is some **sample** text in a paragraph.
+    # Move the cursor to row=5, col=10 just as an example
+    ExNcurses.move(5, 10)
 
-          ## Second Heading
+    # Turn on bold attribute
+    ExNcurses.attron(:bold)
+    # Print the message
+    ExNcurses.addstr("big ole musky glitter bunnies")
+    # Turn bold off
+    ExNcurses.attroff(:bold)
 
-          Another line, possibly including *italic* or **bold** text.
+    # Refresh to show changes
+    ExNcurses.refresh()
 
-          ### Third Heading
+    # Wait for a keystroke so you can see the text
+    ExNcurses.getch()
 
-          Some more text here, just to test out h3 style.
-          """
-        }
-      ]
-    }
-  end
-
-  def update(model, msg) do
-    case msg do
-      # Quit on 'q'
-      {:event, %{ch: ?q}} ->
-        :quit
-
-      _ ->
-        model
-    end
-  end
-
-  def render(%{posts: posts}) do
-    view do
-      panel title: "My Elixir TUI" do
-        # Render each post
-        for post <- posts do
-          View.label(content: post.title, attributes: [:bold, :underline])
-          View.label(content: "")
-
-          for component <- MarkdownTui.parse_markdown_to_labels(post.body) do
-            component
-          end
-        end
-
-        View.label(content: "Press 'q' to exit", color: :blue)
-      end
-    end
+    # End ncurses mode, returning you to normal terminal
+    ExNcurses.endwin()
   end
 end
-
