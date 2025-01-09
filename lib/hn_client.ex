@@ -1,34 +1,22 @@
 defmodule HnClient do
   @moduledoc """
-  Fetches top stories from Hacker News and prints the first 10 headlines.
+  Fetches the top 10 Hacker News story headlines.
   """
 
   def fetch_top_10 do
-    # 1. Get a list of top story IDs from the Hacker News API
+    # 1. Get a list of top story IDs
     top_ids =
-      Req.get!("https://hacker-news.firebaseio.com/v0/topstories.json")
-      |> then(fn %Req.Response{body: body} -> body end)
-      # Body is a huge list of story IDs, so we'll take the first 10
+      Req.get!("https://hacker-news.firebaseio.com/v0/topstories.json").body
       |> Enum.take(10)
 
-    # 2. For each ID, fetch the story data
+    # 2. Fetch each story’s data
     top_stories =
-      top_ids
-      |> Enum.map(fn id ->
+      Enum.map(top_ids, fn id ->
         Req.get!("https://hacker-news.firebaseio.com/v0/item/#{id}.json").body
       end)
 
-    # 3. Extract the "title" from each story
-    # And map them into a nice numbered list
-    Enum.with_index(top_stories, 1)
-    |> Enum.map(fn {story, i} ->
-      "#{i}. #{story["title"]}"
-    end)
-  end
-
-  def print_top_10 do
-    fetch_top_10()
-    |> Enum.each(&IO.puts/1)
+    # 3. Extract and return the titles
+    Enum.map(top_stories, & &1["title"])
   end
 end
 
